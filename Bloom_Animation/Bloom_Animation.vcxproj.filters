@@ -15,18 +15,27 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="brick_pattern.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main_obsolete.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="brick_pattern.cpp">
+    <ClCompile Include="main_obsolete2cpp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="canvas.h">
+    <ClInclude Include="AudioFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AudioFile.h">
+    <ClInclude Include="canvas_obsolete.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="canvas.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

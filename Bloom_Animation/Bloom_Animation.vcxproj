@@ -140,11 +140,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="brick_pattern.cpp" />
+    <ClCompile Include="main_obsolete.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="main_obsolete2cpp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AudioFile.h" />
     <ClInclude Include="canvas.h" />
+    <ClInclude Include="canvas_obsolete.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

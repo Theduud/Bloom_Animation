@@ -20,29 +20,28 @@ AudioFile<float> audioFile;
 vector<RGB> colors_rgb;
 char full[_MAX_PATH];
 auto working_dir = _fullpath(full, ".\\", _MAX_PATH);
-Cairo::RefPtr<Cairo::ImageSurface> surface = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, WIDTH, HEIGHT);
 
 struct RGB {
     RGB(float r, float g, float b) : r{ r }, g{ g }, b{ b }{};
     float r, g, b;
 };
 
-void Clear(Cairo::RefPtr<Cairo::Context> const& cr) {
-    cr->set_source_rgb(0, 0, 0);
-    cr->paint();
+void Clear(cairo_t* cr) {
+    cairo_set_source_rgb(cr, 0, 0, 0);
+    cairo_paint(cr);
 }
 
-void SetRGB(Cairo::RefPtr<Cairo::Context> const& cr, RGB color) {
-    cr->set_source_rgb(color.r, color.g, color.b);
+void SetRGB(cairo_t* cr, RGB color) {
+    cairo_set_source_rgb(cr, color.r, color.g, color.b);
 }
 
-void Draw_Color_Pallete(Cairo::RefPtr<Cairo::Context> const& cr, float height) {
+void Draw_Color_Pallete(cairo_t* cr, float height) {
     auto x = 0.f;
     auto width = WIDTH / colors_rgb.size();
     for (auto color : colors_rgb) {
         SetRGB(cr, color);
-        cr->rectangle(x, 0, width, height);
-        cr->fill();
+        cairo_rectangle(cr, x, 0, width, height);
+        cairo_fill(cr);
         x += width;
     }
 }
@@ -89,66 +88,56 @@ bool Write_Beats_to_File(vector<int> v) {
     myfile.close();
     return true;
 }
-
-bool CCanvas::on_draw(Cairo::RefPtr<Cairo::Context> const& cr)
+cairo_surface_t* surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, WIDTH, HEIGHT);
+cairo_t* cr = cairo_create(surface);
+static gboolean savePNG()
 {
+    auto fileName = string("output\\") + to_string(frame_count) + string(".png");
+    cairo_surface_write_to_png(surface, fileName.c_str());
+    return true;
+}
+
+static bool draw() {
     frame_count++;
     Clear(cr);
     Draw_Color_Pallete(cr, 30);
     SetRGB(cr, colors_rgb[0]);
 
     if (frame_count == 1) {
-        Brick_Pattern_Rotate(10, 1, M_PI / 2);
+        Brick_Pattern_Rotate(120, frame_count, M_PI / 2);
+    }
+    if (frame_count == 180) {
+        Brick_Pattern_Rotate(120, frame_count, -M_PI / 2);
     }
     Draw_Brick_Pattern(cr, frame_count);
 
     //double current_sample = Get_Current_Sample();
 
-    if (write_image) {
-        surface->write_to_png(working_dir + to_string(frame_count) + string(".png"));
-    }
-
+    savePNG();
     return true;
 }
 
-int main(int argc, char** argv)
-{
-    auto app = Gtk::Application::create(argc, argv, "org.gtkmm.cairo.tut");
-
-    Gtk::Window window;
-    window.resize(WIDTH, HEIGHT);
-    CCanvas area;
-    window.add(area);
-    area.show();
-    //audioFile.load(working_dir + string("resource\\audio\\CantinaBand3.wav"));
-    //audioFile.load(working_dir + string("resource\\audio\\bloom.wav"));
-
-    //set colors
-    auto colors_hex = { "f20089",  "e500a4", "db00b6", "d100d1", "bc00dd", "b100e8", "a100f2", 
-        "8900f2", "6930c3", "5e60ce", "5390d9", "4ea8de", "48bfe3", "56cfe1", "64dfdf", 
-        "72efdd", "80ffdb" };
+int main(int argc, char** argv) {
+    auto frames = 300;
+    auto colors_hex = { "f20089",  "e500a4", "db00b6", "d100d1", "bc00dd", "b100e8", "a100f2",
+    "8900f2", "6930c3", "5e60ce", "5390d9", "4ea8de", "48bfe3", "56cfe1", "64dfdf",
+    "72efdd", "80ffdb" };
 
     int r, g, b;
     for (auto color : colors_hex) {
         if (sscanf_s(color, "%02x%02x%02x", &r, &g, &b) == 3) {
-            colors_rgb.push_back(RGB(r/255.f,g/255.f,b/255.f));
+            colors_rgb.push_back(RGB(r / 255.f, g / 255.f, b / 255.f));
         }
     }
-    Initialize_Brick_Pattern(0, 0, 1, 200, 200, WIDTH, HEIGHT, 50);
-
-    //int channel = 0;
-    //sample_rate = audioFile.getSampleRate();
-    //length_in_seconds = audioFile.getLengthInSeconds();
-    //num_samples = audioFile.getNumSamplesPerChannel();
-
-    //for (int i = 0; i < num_samples; i++)
-    //{
-    //    double currentSample = audioFile.samples[channel][i];
-    //    if (currentSample > max_sample) max_sample = currentSample;
-    //}
-
-    //
-    //Write_Beats_to_File(Get_Beat_Frames(.8f));
-
-    return app->run(window);
+    Initialize_Brick_Pattern(0, 0, 1, 100, 100, WIDTH, HEIGHT, 25);
+    for (int i = 0; i < frames; i++) {
+        draw();
+    }
+    auto command = string("ffmpeg -y -framerate 60 -i ") + working_dir + string("\\output\\%d.png ") + working_dir + string("\\output\\output.mp4");
+    auto result = system(command.c_str());
+    for (int i = 1; i <= frames; i++) {
+        auto fileName = working_dir + string("\\output\\") + to_string(i) + string(".png");
+        remove(fileName.c_str());
+    }
+    return 0;
 }
