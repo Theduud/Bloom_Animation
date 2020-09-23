@@ -104,10 +104,19 @@ static bool draw() {
     SetRGB(cr, colors_rgb[0]);
 
     if (frame_count == 1) {
-        Brick_Pattern_Rotate(120, frame_count, M_PI / 2);
+        Brick_Pattern_Rotate(40, frame_count, M_PI / 2);
+        Brick_Pattern_Scale(80, frame_count, 2);
     }
-    if (frame_count == 180) {
-        Brick_Pattern_Rotate(120, frame_count, -M_PI / 2);
+    if (frame_count == 41) {
+        Brick_Pattern_Rotate(40, frame_count, -M_PI / 2);
+    }
+    if (frame_count == 81) {
+        Brick_Pattern_Rotate(40, frame_count, -M_PI * 2);
+        Brick_Pattern_Scale(40, frame_count, .25);
+    }
+    if (frame_count == 121) {
+        Brick_Pattern_Rotate(40, frame_count, M_PI);
+        Brick_Pattern_Scale(40, frame_count, 2);
     }
     Draw_Brick_Pattern(cr, frame_count);
 
@@ -118,7 +127,7 @@ static bool draw() {
 }
 
 int main(int argc, char** argv) {
-    auto frames = 300;
+    auto frames = 160;
     auto colors_hex = { "f20089",  "e500a4", "db00b6", "d100d1", "bc00dd", "b100e8", "a100f2",
     "8900f2", "6930c3", "5e60ce", "5390d9", "4ea8de", "48bfe3", "56cfe1", "64dfdf",
     "72efdd", "80ffdb" };
@@ -132,6 +141,7 @@ int main(int argc, char** argv) {
     Initialize_Brick_Pattern(0, 0, 1, 100, 100, WIDTH, HEIGHT, 25);
     for (int i = 0; i < frames; i++) {
         draw();
+        printf("%f\n", float(((i + 1.f) / frames)) * 100.f);
     }
     auto command = string("ffmpeg -y -framerate 60 -i ") + working_dir + string("\\output\\%d.png ") + working_dir + string("\\output\\output.mp4");
     auto result = system(command.c_str());

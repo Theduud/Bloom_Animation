@@ -24,8 +24,8 @@ int start_frame_scale;
 int start_frame_rotate;
 int total_frames_rotate;
 int total_frames_scale;
-float current_rotation;
-float current_scale;
+float current_rotation{ 0.f };
+float current_scale{ 1.f };
 
 void Initialize_Brick_Pattern(float x_init, float y_init, float line_width,
 	float rect_width, float rect_height, float pattern_width, float pattern_height, float gap) {
@@ -70,24 +70,25 @@ void Initialize_Brick_Pattern(float x_init, float y_init, float line_width,
 
 }
 void Draw_Brick_Pattern(cairo_t* cr, int frameCount) {
-	for (Line line: lines) {
+	if (is_rotating) {
+		if (frameCount - start_frame_rotate > total_frames_rotate) {
+			is_rotating = false;
+		}
+		else {
+			current_rotation += rotate_inc;
+		}
+	}
+	if (is_scaling) {
+		if (frameCount - start_frame_scale > total_frames_scale) {
+			is_rotating = false;
+		}
+		else {
+			//TODO SCALE CAN ONLY INCREASE
+			current_scale += scale_inc;
+		}
+	}
+	for (Line line : lines) {
 		cairo_save(cr);
-		if (is_rotating) {
-			if (frameCount - start_frame_rotate > total_frames_rotate) {
-				is_rotating = false;
-			}
-			else {
-				current_rotation += rotate_inc;
-			}
-		}
-		if (is_scaling) {
-			if (frameCount - start_frame_scale > total_frames_scale) {
-				is_rotating = false;
-			}
-			else {
-				current_scale += scale_inc;
-			}
-		}
 		cairo_translate(cr, line.xc, line.yc);
 		cairo_scale(cr, current_scale, current_scale);
 		cairo_rotate(cr, current_rotation);
@@ -108,6 +109,6 @@ void Brick_Pattern_Rotate(int frames, int starting_frame, float angle) {
 void Brick_Pattern_Scale(int frames, int starting_frame, float scale) {
 	total_frames_scale = frames;
 	start_frame_scale = starting_frame;
-	is_rotating = true;
+	is_scaling = true;
 	scale_inc = scale / frames;
 }
