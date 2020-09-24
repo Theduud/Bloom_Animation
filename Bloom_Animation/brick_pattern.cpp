@@ -15,15 +15,20 @@ struct Line {
 	float xc, yc;
 };
 
+struct Rotate_Sequence {
+	Rotate_Sequence(int start_frame, int frame_duration, float rotate_inc) :
+		start_frame{ start_frame }, frame_duration{ frame_duration }, rotate_inc{ rotate_inc }{};
+	int start_frame, frame_duration;
+	float rotate_inc;
+};
+
+struct Scale_Sequence{
+	Scale_Sequence(int start_frame, int frame_duration) :start_frame{ start_frame }, frame_duration{ frame_duration }{};
+	int start_frame, frame_duration;
+};
+
 std::vector<Line> lines;
-bool is_rotating = false;
-bool is_scaling = false;
-float rotate_inc = 0.f;
-float scale_inc = 0.f;
-int start_frame_scale;
-int start_frame_rotate;
-int total_frames_rotate;
-int total_frames_scale;
+std::vector<Rotate_Sequence> rotate_sequences;
 float current_rotation{ 0.f };
 float current_scale{ 1.f };
 
@@ -70,23 +75,22 @@ void Initialize_Brick_Pattern(float x_init, float y_init, float line_width,
 
 }
 void Draw_Brick_Pattern(cairo_t* cr, int frameCount) {
-	if (is_rotating) {
-		if (frameCount - start_frame_rotate > total_frames_rotate) {
-			is_rotating = false;
+	for (int i = 0; i < rotate_sequences.size(); i++) {
+		if (frameCount - rotate_sequences.operator[](i).start_frame > rotate_sequences.operator[](i).frame_duration) {
+			rotate_sequences.erase(rotate_sequences.begin() + i);
 		}
-		else {
-			current_rotation += rotate_inc;
-		}
-	}
-	if (is_scaling) {
-		if (frameCount - start_frame_scale > total_frames_scale) {
-			is_rotating = false;
-		}
-		else {
-			//TODO SCALE CAN ONLY INCREASE
-			current_scale += scale_inc;
+		else if(frameCount >= rotate_sequences.operator[](i).start_frame) {
+			current_rotation += rotate_sequences.operator[](i).rotate_inc;
 		}
 	}
+	//if (is_scaling) {
+	//	if (frameCount - start_frame_scale > total_frames_scale) {
+	//		is_rotating = false;
+	//	}
+	//	else {
+	//		current_scale += scale_inc;
+	//	}
+	//}
 	for (Line line : lines) {
 		cairo_save(cr);
 		cairo_translate(cr, line.xc, line.yc);
@@ -100,15 +104,16 @@ void Draw_Brick_Pattern(cairo_t* cr, int frameCount) {
 	}
 }
 
-void Brick_Pattern_Rotate(int frames, int starting_frame, float angle) {
-	total_frames_rotate = frames;
-	start_frame_rotate = starting_frame;
-	is_rotating = true;
-	rotate_inc = angle / frames;
+void Brick_Pattern_Rotate(int frames, int starting_frame, float angle_adjust) {
+	auto total_frames_rotate = frames;
+	auto start_frame_rotate = starting_frame;
+	auto is_rotating = true;
+	auto rotate_inc = angle_adjust / frames;
+	rotate_sequences.push_back(Rotate_Sequence(start_frame_rotate, total_frames_rotate, rotate_inc));
 }
 void Brick_Pattern_Scale(int frames, int starting_frame, float scale) {
-	total_frames_scale = frames;
-	start_frame_scale = starting_frame;
-	is_scaling = true;
-	scale_inc = scale / frames;
+	auto total_frames_scale = frames;
+	auto start_frame_scale = starting_frame;
+	auto is_scaling = true;
+	auto scale_inc = (scale - current_scale) / frames;
 }

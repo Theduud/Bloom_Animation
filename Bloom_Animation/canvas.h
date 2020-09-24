@@ -2,7 +2,7 @@
 #include <gtk/gtkdrawingarea.h>
 
 static int frame_count{ 0 };
-const unsigned frames_per_second = 60;
+const int frames_per_second = 60;
 
 void Initialize_Brick_Pattern(float x_init, float y_init, float line_width,
     float rect_width, float rect_height, float pattern_width, float pattern_height, float gap);
